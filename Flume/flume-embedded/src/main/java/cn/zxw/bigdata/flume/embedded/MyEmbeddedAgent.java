@@ -42,6 +42,7 @@ public class MyEmbeddedAgent{
     	events.add(event);
     	events.add(event);
 
+    	//agent.put(event);
     	agent.putAll(events);
 
     	//...

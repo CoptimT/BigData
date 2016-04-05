@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.apache.oozie</groupId>
+        <artifactId>oozie-main</artifactId>
+        <version>4.2.0</version>
+    </parent>
+    <groupId>org.apache.oozie</groupId>
+    <artifactId>oozie-docs</artifactId>
+    <version>4.2.0</version>
+    <description>Apache Oozie Docs</description>
+    <name>Apache Oozie Docs</name>
+    <packaging>war</packaging>
+
+    <build>
+        <plugins>
+            <plugin>
+                 <groupId>org.apache.rat</groupId>
+                 <artifactId>apache-rat-plugin</artifactId>
+                 <configuration>
+                     <excludeSubProjects>false</excludeSubProjects>
+                     <excludes>
+                         <!-- excluding all as the root POM does the full check-->
+                         <exclude>**</exclude>
+                     </excludes>
+                 </configuration>
+             </plugin>
+             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptors>
+                        <descriptor>../src/main/assemblies/docs.xml</descriptor>
+                    </descriptors>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>generateDocs</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>generateDocs</name>
+                </property>
+            </activation>
+            <reporting>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-project-info-reports-plugin</artifactId>
+                        <!-- Using version because plugin management does not work for reporting plugins -->
+                        <version>2.2</version>
+                        <reportSets>
+                            <reportSet>
+                                <reports>
+                                </reports>
+                            </reportSet>
+                        </reportSets>
+                    </plugin>
+                </plugins>
+            </reporting>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-site-plugin</artifactId>
+                        <configuration>
+                            <port>8888</port>
+                            <outputEncoding>UTF-8</outputEncoding>
+                        </configuration>
+                        <dependencies>
+                            <dependency>
+                                <!-- Customized Doxia Maven Plugin for twiki documentation -->
+                                <groupId>org.apache.maven.doxia</groupId>
+                                <artifactId>doxia-module-twiki</artifactId>
+                                <version>1.0-alpha-9.2y</version>
+                            </dependency>
+                            <dependency>
+                                <!-- Customized Doxia Maven Plugin for twiki documentation -->
+                                <groupId>org.apache.maven.doxia</groupId>
+                                <artifactId>doxia-core</artifactId>
+                                <version>1.0-alpha-9.2y</version>
+                            </dependency>
+                        </dependencies>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>site</goal>
+                                </goals>
+                                <phase>prepare-package</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <configuration>
+                            <webResources>
+                                <resource>
+                                    <directory>target/site</directory>
+                                    <targetPath>docs</targetPath>
+                                </resource>
+                                <resource>
+                                    <directory>../client/target/site</directory>
+                                    <targetPath>docs/client</targetPath>
+                                </resource>
+                                <resource>
+                                    <directory>../core/target/site</directory>
+                                    <targetPath>docs/core</targetPath>
+                                </resource>
+                                <resource>
+                                    <directory>..</directory>
+                                    <targetPath>docs</targetPath>
+                                    <includes>
+                                        <include>release-log.txt</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>../core/src/main/resources</directory>
+                                    <includes>
+                                        <include>oozie-default.xml</include>
+                                    </includes>
+                                    <targetPath>docs</targetPath>
+                                </resource>
+                            </webResources>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+
+</project>
+

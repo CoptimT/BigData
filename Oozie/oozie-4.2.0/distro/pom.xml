@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.apache.oozie</groupId>
+        <artifactId>oozie-main</artifactId>
+        <version>4.2.0</version>
+    </parent>
+    <groupId>org.apache.oozie</groupId>
+    <artifactId>oozie-distro</artifactId>
+    <version>4.2.0</version>
+    <description>Apache Oozie Distro</description>
+    <name>Apache Oozie Distro</name>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.oozie</groupId>
+            <artifactId>oozie-core</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.oozie</groupId>
+            <artifactId>oozie-client</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.oozie</groupId>
+            <artifactId>oozie-webapp</artifactId>
+            <scope>compile</scope>
+            <type>war</type>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.oozie</groupId>
+            <artifactId>oozie-examples</artifactId>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                 <groupId>org.apache.rat</groupId>
+                 <artifactId>apache-rat-plugin</artifactId>
+                 <configuration>
+                     <excludeSubProjects>false</excludeSubProjects>
+                     <excludes>
+                         <!-- excluding all as the root POM does the full check-->
+                         <exclude>**</exclude>
+                     </excludes>
+                 </configuration>
+             </plugin>
+             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <finalName>oozie-${project.version}</finalName>
+                    <descriptors>
+                        <descriptor>../src/main/assemblies/distro.xml</descriptor>
+                    </descriptors>
+                </configuration>
+            </plugin>
+            <!-- Downloading Tomcat TAR.GZ, using downloads/ dir to avoid downloading over an over -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <configuration>
+                            <target>
+                                <mkdir dir="downloads"/>
+                                <get src="http://archive.apache.org/dist/tomcat/tomcat-6/v${tomcat.version}/bin/apache-tomcat-${tomcat.version}.tar.gz"
+                                     dest="downloads/tomcat-${tomcat.version}.tar.gz" verbose="true" skipexisting="true"/>
+                                <delete dir="target/tomcat"/>
+                                <mkdir dir="target/tomcat"/>
+                                <gunzip src="downloads/tomcat-${tomcat.version}.tar.gz"
+                                        dest="target/tomcat/tomcat-${tomcat.version}.tar"/>
+                                <untar src="target/tomcat/tomcat-${tomcat.version}.tar" dest="target/tomcat"/>
+                                <move file="target/tomcat/apache-tomcat-${tomcat.version}" tofile="target/tomcat/oozie-server"/>
+                                <delete dir="target/tomcat/oozie-server/webapps"/>
+                                <mkdir dir="target/tomcat/oozie-server/webapps"/>
+                                <delete file="target/tomcat/oozie-server/conf/server.xml"/>
+                                <copy file="src/main/tomcat/server.xml" toDir="target/tomcat/oozie-server/conf"/>
+                                <copy file="src/main/tomcat/logging.properties"
+                                      toDir="target/tomcat/oozie-server/conf"/>
+                                <mkdir dir="target/tomcat/oozie-server/conf/ssl"/>
+                                <copy file="src/main/tomcat/server.xml" toDir="target/tomcat/oozie-server/conf/ssl"/>
+                                <copy file="src/main/tomcat/ssl-server.xml" toDir="target/tomcat/oozie-server/conf/ssl"/>
+                                <copy file="src/main/tomcat/ssl-web.xml" toDir="target/tomcat/oozie-server/conf/ssl"/>
+                                <copy todir="target/tomcat/oozie-server/webapps/ROOT">
+                                    <fileset dir="src/main/tomcat/ROOT"/>
+                                </copy>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>wfgen</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.oozie</groupId>
+                    <artifactId>oozie-workflowgenerator</artifactId>
+                    <version>${project.version}</version>
+                    <scope>compile</scope>
+                    <type>war</type>
+                </dependency>
+             </dependencies>
+        </profile>
+        <profile>
+            <id>loginServerExample</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.oozie</groupId>
+                    <artifactId>oozie-login</artifactId>
+                    <version>${project.version}</version>
+                    <scope>compile</scope>
+                    <type>war</type>
+                </dependency>
+             </dependencies>
+        </profile>
+    </profiles>
+</project>
+

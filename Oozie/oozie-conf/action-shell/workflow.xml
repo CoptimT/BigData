@@ -1,0 +1,61 @@
+<workflow-app xmlns="uri:oozie:workflow:0.2" name="shell-wf">
+<start to="shell-node"/>
+<action name="shell-node">
+	<shell xmlns="uri:oozie:shell-action:0.2">
+        <job-tracker>${jobTracker}</job-tracker>
+        <name-node>${nameNode}</name-node>
+        <prepare>
+            <delete path="/test/bcd"/>
+            <mkdir path="/test/bcd_new"/>
+        </prepare>
+        <configuration>
+            <property>
+                <name>mapred.job.queue.name</name>
+                <value>${queueName}</value>
+            </property>
+        </configuration>
+        <exec>echo</exec>
+        <argument>my_output=Hello Oozie Error</argument>
+        <capture-output />
+    </shell>
+	<ok to="check-output" />
+	<error to="fail" />
+</action>
+<decision name="check-output">
+	<switch>
+		<case to="send-email-ok">
+			${wf:actionData('shell-node')['my_output'] eq 'Hello Oozie'}
+		</case>
+		<default to="send-email-err" />
+	</switch> 
+</decision> 
+<action name="send-email-ok">
+    <email xmlns="uri:oozie:email-action:0.1">
+        <to>${toEmail}</to>
+        <cc>${ccEmail}</cc>
+        <subject>[OOZIE ALERT] ${wf:id()} </subject>
+        <body>wfid:${wf:id()}
+            correct output, expected [Hello Oozie].
+        </body>
+    </email>
+    <ok to="end"/>
+    <error to="fail"/>
+</action>
+<action name="send-email-err">
+    <email xmlns="uri:oozie:email-action:0.1">
+        <to>${toEmail}</to>
+        <cc>${ccEmail}</cc>
+        <subject>[OOZIE FAILED] ${wf:id()} </subject>
+        <body>Task failed!
+            wfid:${wf:id()}
+            Incorrect output, expected [Hello Oozie] but was [${wf:actionData('shell-node')['my_output']}].
+        </body>
+    </email>
+    <ok to="end"/>
+    <error to="fail"/>
+</action>
+<kill name="fail">
+    <message>failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+</kill>	
+<end name="end"/>
+</workflow-app>

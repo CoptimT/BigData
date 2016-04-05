@@ -1,0 +1,27 @@
+<workflow-app xmlns="uri:oozie:workflow:0.2" name="sqoop-wf">
+<start to="java-node"/>
+<action name="java-node">
+	<java>
+	     <job-tracker>${jobTracker}</job-tracker>
+	     <name-node>${nameNode}</name-node>
+	     <prepare> 
+	         <delete path="/bsdk/bcd_record/${day}"/> 
+	     </prepare> 
+	     <configuration>
+	         <property>
+	             <name>mapred.job.queue.name</name>
+	             <value>${queueName}</value>
+	         </property>
+	     </configuration>
+	     <main-class>com.huanju.cleaner.bcd.BcdLogCleaner</main-class>
+	     <arg>/bsdk/bcd_logs/${day}</arg>
+	     <arg>/bsdk/bcd_record/${day}</arg>
+	 </java>
+	 <ok to="end"/>
+	 <error to="fail"/>
+</action>
+<kill name="fail">
+    <message>failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+</kill>	
+<end name="end"/>
+</workflow-app>

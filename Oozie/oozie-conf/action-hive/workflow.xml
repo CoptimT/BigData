@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow-app xmlns="uri:oozie:workflow:0.2" name="hive-wf">
+<start to="hive-node"/>
+<action name="hive-node">
+	<hive xmlns="uri:oozie:hive-action:0.2">
+		<job-tracker>${jobTracker}</job-tracker>
+		<name-node>${nameNode}</name-node>
+		<prepare>
+        	<delete path="/ad/adx/logs/${day}"/>
+            <delete path="/ad/adx/tracker_logs/${day}"/>
+        </prepare>
+		<job-xml>my-hive-default.xml</job-xml>
+		<script>drop_tmp_table.hql</script>
+		<param>day=${day}</param>
+		<param>hour=${hour}</param>
+	</hive>
+	<ok to="end" />
+	<error to="fail" />
+</action>
+<kill name="fail">
+    <message>failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+</kill>	
+<end name="end"/>
+</workflow-app>

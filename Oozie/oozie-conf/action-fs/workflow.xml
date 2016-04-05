@@ -1,0 +1,19 @@
+<workflow-app xmlns="uri:oozie:workflow:0.2" name="fs-wf">
+	<start to="fs-node" />
+	<action name="fs-node">
+		<fs>
+			<delete path='/test/bcdres' />
+			<mkdir path='/test/test' />
+			<move source='/test/bcd_new' target='/test/test/' />
+			<chmod path='/test/test/bcd_new' permissions='777' dir-files='false' />
+			<touchz path='/test/test/bcd.txt' />
+		</fs>
+		<ok to="end" />
+		<error to="fail" />
+	</action>
+	<kill name="fail">
+		<message>failed, error message[${wf:errorMessage(wf:lastErrorNode())}]
+		</message>
+	</kill>
+	<end name="end" />
+</workflow-app>

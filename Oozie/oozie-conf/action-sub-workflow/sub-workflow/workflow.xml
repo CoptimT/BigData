@@ -1,0 +1,16 @@
+<workflow-app xmlns="uri:oozie:workflow:0.2" name="sub-wf">
+	<start to="fs-node" />
+	<!-- 必须完整HDFS路径 -->
+	<action name="fs-node">
+		<fs>
+			<chmod path='${nameNode}/test/test' permissions='drwxrwxr-x' dir-files='true' />
+		</fs>
+		<ok to="end" />
+		<error to="fail" />
+	</action>
+	<kill name="fail">
+		<message>failed, error message[${wf:errorMessage(wf:lastErrorNode())}]
+		</message>
+	</kill>
+	<end name="end" />
+</workflow-app>

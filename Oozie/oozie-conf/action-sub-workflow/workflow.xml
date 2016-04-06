@@ -1,0 +1,21 @@
+<workflow-app xmlns="uri:oozie:workflow:0.2" name="main-wf">
+	<start to="sub-node" />
+	<action name="sub-node">
+		<sub-workflow>
+             <app-path>${nameNode}/user/oozie/test/sub-workflow</app-path>
+             <propagate-configuration/>
+             <configuration>
+                 <property>
+                     <name>inputDir</name>
+                     <value>${nameNode}/test/test</value>
+                 </property>
+             </configuration>
+         </sub-workflow>
+		<ok to="end" />
+		<error to="fail" />
+	</action>
+	<kill name="fail">
+		<message>failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+	</kill>
+	<end name="end" />
+</workflow-app>

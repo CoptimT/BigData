@@ -1,12 +1,12 @@
 <workflow-app xmlns="uri:oozie:workflow:0.2" name="fs-wf">
 	<start to="fs-node" />
+	<!-- 必须完整HDFS路径 -->
 	<action name="fs-node">
 		<fs>
-			<delete path='/test/bcdres' />
-			<mkdir path='/test/test' />
-			<move source='/test/bcd_new' target='/test/test/' />
-			<chmod path='/test/test/bcd_new' permissions='777' dir-files='false' />
-			<touchz path='/test/test/bcd.txt' />
+			<delete path='${nameNode}/test/bcdres' /> 
+			<mkdir path='${nameNode}/test/test' />
+			<move source='${nameNode}/test/bcd_new' target='${nameNode}/test/test/' />
+			<chmod path='${nameNode}/test/test/bcd_new' permissions='drwxrwxrwx' dir-files='false' />
 		</fs>
 		<ok to="end" />
 		<error to="fail" />

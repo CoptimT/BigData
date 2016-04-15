@@ -1,0 +1,60 @@
+<coordinator-app name="cron-coord" frequency="${coord:minutes(6)}" start="${start}" end="${end}" 
+                 timezone="UTC" xmlns="uri:oozie:coordinator:0.2">
+    <controls>
+        <concurrency>1</concurrency>
+    </controls>
+    
+    <datasets>
+        <dataset name="raw-logs" frequency="${coord:minutes(2)}" initial-instance="2016-04-15T14:30Z" timezone="UTC">
+            <uri-template>${nameNode}/test/input-data/rawLogs/${YEAR}/${MONTH}/${DAY}/${HOUR}/${MINUTE}</uri-template>
+        </dataset>
+        <dataset name="aggregated-logs" frequency="${coord:minutes(6)}" initial-instance="2016-04-15T14:30Z" timezone="UTC">
+            <uri-template>${nameNode}/test/output-data/aggregatedLogs/${YEAR}/${MONTH}/${DAY}/${HOUR}</uri-template>
+        </dataset>
+    </datasets>
+    
+    <input-events>
+        <data-in name="input" dataset="raw-logs">
+            <start-instance>${coord:current(-2)}</start-instance>
+            <end-instance>${coord:current(0)}</end-instance>
+        </data-in>
+    </input-events>
+
+    <output-events>
+        <data-out name="output" dataset="aggregated-logs">
+            <instance>${coord:current(0)}</instance>
+        </data-out>
+    </output-events>
+    
+	<action>
+		<workflow>
+			<app-path>${workflowAppUri}</app-path>
+			<configuration>
+				<property>
+					<name>jobTracker</name>
+					<value>${jobTracker}</value>
+				</property>
+				<property>
+					<name>nameNode</name>
+					<value>${nameNode}</value>
+				</property>
+				<property>
+					<name>queueName</name>
+					<value>${queueName}</value>
+				</property>
+				<property>
+                    <name>inputData</name>
+                    <value>${coord:dataIn('input')}</value>
+                </property>
+                <property>
+                    <name>outputData</name>
+                    <value>${coord:dataOut('output')}</value>
+                </property>
+                <property>
+                    <name>nominalTime</name>
+                    <value>${coord:nominalTime()}</value>
+                </property>
+			</configuration>
+		</workflow>
+	</action>
+</coordinator-app>

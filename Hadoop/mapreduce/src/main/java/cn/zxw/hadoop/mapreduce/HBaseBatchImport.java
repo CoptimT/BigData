@@ -25,7 +25,7 @@ public class HBaseBatchImport extends Configured implements Tool {
 	
 	public int run(String[] args) throws Exception {
 		if (args.length != 3) {
-			System.out.println("Usage hadoop jar data.jar quorum hbase_table inputPath");
+			System.out.println("Usage hadoop jar HBaseBatchImport.jar quorum hbase_table inputPath");
 			return 1;
 		}
 		String quorum = args[0];
@@ -95,9 +95,9 @@ public class HBaseBatchImport extends Configured implements Tool {
 		    for (Text text : values) {
 		        Put put = new Put(Bytes.toBytes(key.toString()));
 		        //列族为family，列名为qualifier
-		        put.add(Bytes.toBytes("apptag"), Bytes.toBytes("qualifier"), Bytes.toBytes(text.toString()));
+		        put.add(Bytes.toBytes("basic"), Bytes.toBytes("name"), Bytes.toBytes(text.toString()));
 		        context.write(NullWritable.get(), put);
-		    }  
+		    }
 		}
 	}
 }

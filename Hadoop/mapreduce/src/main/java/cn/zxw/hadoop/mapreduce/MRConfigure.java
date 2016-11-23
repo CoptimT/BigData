@@ -21,7 +21,9 @@ public class MRConfigure extends Configured implements Tool {
 		conf.set("mapreduce.input.fileinputformat.split.minsize", "536870912");//512M
 		//设置map任务数(老版本配置mapred.map.tasks)
 		conf.set("mapreduce.job.maps", "1");//如DB导出的job
-		
+		//设置map端压缩
+		conf.set("mapreduce.map.output.compress", "true");
+				
 		Job job = Job.getInstance(conf, MRConfigure.class.getSimpleName());
 		job.setJarByClass(MRConfigure.class);
 		//...

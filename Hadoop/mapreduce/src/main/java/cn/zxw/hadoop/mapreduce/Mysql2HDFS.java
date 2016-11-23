@@ -33,7 +33,7 @@ public class Mysql2HDFS extends Configured implements Tool {
 	public int run(String[] args) throws Exception {
 		// 验证job启动时的参数合法性
 		if (args.length != 5) {
-			System.out.println("Usage:hadoop jar reyunMysql2HDFS.jar driver jdbc username password output");
+			System.out.println("Usage:hadoop jar mysql2HDFS.jar driver jdbc username password output");
 			return 1;
 		}
 		// 连接数据库的驱动类型
@@ -54,29 +54,25 @@ public class Mysql2HDFS extends Configured implements Tool {
 		
 		DBConfiguration.configureDB(conf, driver, jdbc, username, password);
 		Job job = Job.getInstance(conf, Mysql2HDFS.class.getSimpleName());
-
-		// 设置job的输入数据类型为数据库类型
-		job.setInputFormatClass(DBInputFormat.class);
-
-		// 设置mysql的输入数据源，tb_publisher_industry为表名，first,second,mapping_id为字段名
-		DBInputFormat.setInput(job, DBRecord.class, "tb_name", null, "mapping_id", "first,second,mapping_id");
-
 		// 设置打jar的主类
 		job.setJarByClass(Mysql2HDFS.class);
-
+		
+		// 设置job的输入数据类型为数据库类型
+		job.setInputFormatClass(DBInputFormat.class);
 		// 设置job的mapper类
 		job.setMapperClass(MyMapper.class);
-
 		// 设置Map任务的输出类型
 		job.setMapOutputKeyClass(LongWritable.class);
 		job.setMapOutputValueClass(Text.class);
 
 		// 设置Reducer任务的个数
 		job.setNumReduceTasks(0);
-
+		
+		// 设置mysql的输入数据源，tb_publisher_industry为表名，first,second,mapping_id为字段名
+		DBInputFormat.setInput(job, DBRecord.class, "tb_name", null, "mapping_id", "first,second,mapping_id");
 		// 设置job的输入目录
 		FileOutputFormat.setOutputPath(job, new Path(output));
-
+		
 		return job.waitForCompletion(true) == true ? 0 : 1;
 	}
 

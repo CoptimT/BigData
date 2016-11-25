@@ -28,7 +28,26 @@
 		</case>
 		<default to="send-email-err" />
 	</switch> 
-</decision> 
+</decision>
+<!-- 应用2 -->
+<action name='call_back_node'>
+    <shell xmlns="uri:oozie:shell-action:0.1">
+        <job-tracker>${jobTracker}</job-tracker>
+        <name-node>${nameNode}</name-node>
+        <configuration>
+            <property>
+                <name>mapred.job.queue.name</name>
+                <value>${queueName}</value>
+            </property>
+        </configuration>
+        <exec>${exec}</exec>
+        <argument>${id}</argument>
+        <argument>${callbackHost}</argument>
+        <file>${exec}</file><!--添加这行-->
+    </shell>
+    <ok to="end" />
+    <error to="send_email" />
+</action>
 <action name="send-email-ok">
     <email xmlns="uri:oozie:email-action:0.1">
         <to>${toEmail}</to>

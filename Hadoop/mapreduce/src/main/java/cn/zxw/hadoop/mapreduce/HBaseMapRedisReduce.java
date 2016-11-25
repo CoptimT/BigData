@@ -28,6 +28,7 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
 import cn.zxw.hadoop.mapreduce.output.ReidsOutputFormat;
+import cn.zxw.hadoop.mapreduce.partition.PartitionTo32Redis;
 
 /**
  * 分布式缓存与HBase关联结果，保存Redis
@@ -81,7 +82,9 @@ public class HBaseMapRedisReduce extends Configured implements Tool {
 		job.setOutputFormatClass(ReidsOutputFormat.class);
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
-		
+		job.setNumReduceTasks(32);
+		// 设置自定义分区
+		job.setPartitionerClass(PartitionTo32Redis.class);
 		// 设置输出数据的路径
 		FileOutputFormat.setOutputPath(job, new Path(outputPath));
 
@@ -113,7 +116,7 @@ public class HBaseMapRedisReduce extends Configured implements Tool {
 			HashSet<String> hbaseTagSet = new HashSet<String>();
 			StringBuilder adGroupIdsSb = new StringBuilder();
 			// 从HBase的tags列中获取数据
-			String tags = new String(value.getValue(Bytes.toBytes("data"), Bytes.toBytes("reyun_tags")));
+			String tags = new String(value.getValue(Bytes.toBytes("data"), Bytes.toBytes("tags")));
 			String[] splitTags = tags.split(",");
 			for (String tag : splitTags) {
 				hbaseTagSet.add(tag);

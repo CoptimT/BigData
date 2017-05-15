@@ -17,7 +17,7 @@ public class ZkClient {
                 }
             });
             // 创建一个目录节点
-            zk.create("/testRootPath", "testRootData".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+            /*zk.create("/testRootPath", "testRootData".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
             // 创建一个子目录节点
             zk.create("/testRootPath/testChildPathOne", "testChildDataOne".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
 
@@ -37,11 +37,22 @@ public class ZkClient {
             zk.delete("/testRootPath/testChildPathTwo", -1);
             zk.delete("/testRootPath/testChildPathOne", -1);
             // 删除父目录节点
-            zk.delete("/testRootPath", -1);
+            zk.delete("/testRootPath", -1);*/
+
+            System.out.println("1." + zk.exists("/notExists",false));//1.null
+            System.out.println("2." + zk.exists("/testRootPath/testChildPathTwo",false).getDataLength());//2.16
+            //zk.create("/consumers/test/offsets/test", "".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+            //System.out.println(new String(zk.getData("/consumers/test/offsets/test/1", false, null)));
+
+            zk.create("/consumers/test/owners/test", "".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+            //System.out.println(new String(zk.getData("/consumers/test/ids", false, null)));
+
+
+
             // 关闭连接
             zk.close();
         }catch(Exception e){
-
+            e.printStackTrace();
         }
     }
 }

@@ -6,6 +6,7 @@ import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
+import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.bulk.byscroll.BulkByScrollResponse;
 import org.elasticsearch.client.AdminClient;
 import org.elasticsearch.client.Requests;
@@ -30,14 +31,13 @@ public class ESAdminClient {
 			client = ESUtil.getTransportClient();
 			AdminClient adminClient=client.admin();
 			//1.创建索引
-			createIndex(adminClient);
-			
+			//createIndex(adminClient);
 			//2.创建类型
-			//createType(adminClient);
+			createType(adminClient);
 			
 			//delIndex(adminClient);
 			
-			//delByQuery(client);
+			delByQuery(client);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}finally {
@@ -64,29 +64,36 @@ public class ESAdminClient {
 	}
 	
 	/**
-	 * 创建类型
-	 * @param adminClient
-	 * @throws IOException 
+	 * 创建类型，并增加mapping
 	 */
 	public static void createType(AdminClient adminClient) throws IOException {
-		//字段或者其他属性进行一个预定义的设置
-		XContentBuilder builder = XContentFactory.jsonBuilder()
-				.startObject()
-				.startObject(ESUtil.typeName)
-				.startObject("properties");
-		//TODO
-		/*JSONObject object = mapping.getJSONObject(i);
-
-		builder.startObject(object.getString("fieldName"));
-		builder.field("type", object.getString("fieldType"));
-		builder.field("index", "not_analyzed");
-		builder.field("store", "yes");
-		builder.endObject();*/
-
-		builder.endObject().endObject().endObject();
+		// 使用XContentBuilder创建Mapping
+        XContentBuilder builder = XContentFactory.jsonBuilder()
+                    .startObject()
+                        .field("properties")
+                            .startObject()
+                                .field("name")
+                                    .startObject()
+                                        .field("index", "not_analyzed")
+                                        .field("type", "text")
+                                    .endObject()
+                                .field("interests")
+                                    .startObject()
+                                        .field("index", "not_analyzed")
+                                        .field("type", "string")
+                                    .endObject()
+                                .field("age")
+                                    .startObject()
+                                        .field("index", "not_analyzed")
+                                        .field("type", "integer")
+                                    .endObject()
+                            .endObject()
+                    .endObject();
+        System.out.println(builder.string());
 		PutMappingRequest mappingRequest = Requests.putMappingRequest(ESUtil.indexName).type(ESUtil.typeName)
 				.source(builder);
-		adminClient.indices().putMapping(mappingRequest).actionGet();
+		PutMappingResponse response=adminClient.indices().putMapping(mappingRequest).actionGet();
+		System.out.println(response.isAcknowledged());
 	}
 	
 	/**
@@ -95,6 +102,7 @@ public class ESAdminClient {
 	 */
 	public static void delIndex(AdminClient adminClient) {
 		DeleteIndexResponse response=adminClient.indices()
+				//.prepareDelete(ESUtil.indexName).get();
 				.delete(new DeleteIndexRequest(ESUtil.indexName)).actionGet();
 		System.out.println(response.isAcknowledged());
 	}

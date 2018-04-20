@@ -24,17 +24,15 @@ public class ClientInstance {
 					.put("client.transport.sniff", true)//自动嗅探整个集群状态，把其他ES节点ip添加到本地的客户端列表中
 			        .put("cluster.name", "mycluster").build();
 			//对于ES Client，有两种形式，一个是TransportClient，一个是NodeClient
+			//NodeClient适合用作单元或集成测试，而不适合用于生产环境
 			client = new PreBuiltTransportClient(settings)
-					.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("node3.leap.com"), 9300))
-					.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("node4.leap.com"), 9300))
-					.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("node5.leap.com"), 9300))
-					.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("node6.leap.com"), 9300));
+					.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("10.116.27.131"), 9300));
 			
 			Map<String, Object> json = new HashMap<String, Object>();
-			json.put("factory","雪铁龙(进口)");
-			json.put("brand","雪铁龙");
-			json.put("series","雪铁龙C4 Aircross");
-			IndexResponse response = client.prepareIndex("test", "bbs", "1").setSource(json).get();
+			json.put("name","雪铁龙(进口)");
+			json.put("interests","雪铁龙");
+			//json.put("age","2");
+			IndexResponse response = client.prepareIndex("test", "user_test1", "2").setSource(json).get();
 			
 			// Index name
 			String _index = response.getIndex();

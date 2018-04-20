@@ -1,17 +1,14 @@
 package com.zxw.auto.elasticsearch;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.elasticsearch.action.bulk.BulkItemResponse;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteResponse;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
@@ -28,7 +25,7 @@ import com.zxw.auto.elasticsearch.bean.Car;
 import com.zxw.auto.elasticsearch.utl.ESUtil;
 
 /**
- * ES增删改查
+ * ES单个文档增删改查
  */
 public class ESClientCurd {
 	
@@ -38,13 +35,15 @@ public class ESClientCurd {
 			client = ESUtil.getTransportClient();
 			//1.add
 			//addDocument(client);
-			//bulkDocument(client);
 			//2.delete
-			//delDocument(client);
+			delDocument(client);
 			//3.update
 			//updateDocument(client);
-			searcher(client);
-		} catch (UnknownHostException e) {
+			upsertDocument(client);
+			//4.get
+			getDocument(client);
+			//searcher(client);
+		} catch (Exception e) {
 			e.printStackTrace();
 		}finally {
 			if(client != null) {
@@ -68,34 +67,14 @@ public class ESClientCurd {
 		System.out.println(response.getResult());
 	}
 	
-	public static void bulkDocument(TransportClient client) {
-		//批量添加：
-		BulkRequestBuilder bulkRequestBuilder = client.prepareBulk();
-		for (int i = 1; i<=10; i++){
-			Map<String, Object> map = new HashMap<String, Object>();
-			map.put("id",i);
-			map.put("factory","雪铁龙(进口)"+i);
-			map.put("brand","雪铁龙"+i);
-			map.put("series","雪铁龙C4"+i);
-			bulkRequestBuilder.add(client.prepareIndex(ESUtil.indexName, ESUtil.typeName)
-					.setId(map.get("id").toString()).setSource(map));
-		}
-		BulkResponse bulkResponse = bulkRequestBuilder.execute().actionGet();
-		//bulkRequestBuilder.request().requests().clear();
-		//if (bulkResponse.hasFailures()){
-			Iterator<BulkItemResponse> it=bulkResponse.iterator();
-			while(it.hasNext()) {
-				BulkItemResponse bulkItemResponse=it.next();
-				System.out.println(bulkItemResponse.getItemId()+" - "+bulkItemResponse.getResponse().getResult());
-			}
-		//}
-	}
-	
 	public static void delDocument(TransportClient client) {
 		DeleteResponse response=client.prepareDelete(ESUtil.indexName, ESUtil.typeName, "1").execute().actionGet();
 		System.out.println(response.getResult());
 	}
-	
+	/**
+	 * 1.更新信息
+	 * 2.为已有的文档添加新的字段  
+	 */
 	public static void updateDocument(TransportClient client) {
 		Map<String, Object> json = new HashMap<String, Object>();
 		json.put("id","1");
@@ -107,6 +86,35 @@ public class ESClientCurd {
 		UpdateResponse response=client.update(updateRequest).actionGet();
 		//UpdateResponse response=client.prepareUpdate(ESUtil.indexName, ESUtil.typeName, "1").setDoc(json).get();
 		System.out.println(response.getResult());
+	}
+	
+	/**
+	 * upsert：在使用update方法时，
+	 *   a:针对文档不存在的情况时,做出index数据的操作,update无效;
+	 *   b:如果文档存在,那么index数据操作无效,update有效;
+	 */
+	public static void upsertDocument(TransportClient client) throws IOException {
+		Map<String, Object> json = new HashMap<String, Object>();
+		json.put("factory","雪铁龙(进口)11");
+		json.put("brand","雪铁龙11");
+		json.put("series","雪铁龙C4");
+		//先构建一个IndexRequest  
+        IndexRequest indexRequest = new IndexRequest(ESUtil.indexName,ESUtil.typeName,"1");  
+        indexRequest.source(json);  
+        //再构建一个UpdateRequest，并用IndexRequest关联  
+        UpdateRequest updateRequest = new UpdateRequest(ESUtil.indexName,ESUtil.typeName,"1");  
+        updateRequest.doc(XContentFactory.jsonBuilder()
+                .startObject()  
+                .field("series","love")  
+                .endObject()  
+                ).upsert(indexRequest);  
+        UpdateResponse response=client.update(updateRequest).actionGet();
+        System.out.println(response.getResult());
+	}
+	
+	public static void getDocument(TransportClient client) {
+		GetResponse getResponse = client.prepareGet(ESUtil.indexName,ESUtil.typeName,"1").get();  
+        System.out.println(getResponse.getSourceAsString());  
 	}
 	
 	/**

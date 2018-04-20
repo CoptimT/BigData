@@ -31,8 +31,8 @@ public class ClientInstance {
 			Map<String, Object> json = new HashMap<String, Object>();
 			json.put("name","雪铁龙(进口)");
 			json.put("interests","雪铁龙");
-			//json.put("age","2");
-			IndexResponse response = client.prepareIndex("test", "user_test1", "2").setSource(json).get();
+			json.put("age","3");
+			IndexResponse response = client.prepareIndex("test", "user_test1", "3").setSource(json).get();
 			
 			// Index name
 			String _index = response.getIndex();
